@@ -30,13 +30,114 @@
           <td class="table-header" onclick="sortBy(this.innerHTML)">Edit</td>
           <td class="table-header" onclick="sortBy(this.innerHTML)">Delete</td>
         </tr>
+        <tr v-for="employee in employees" v-bind:key="employee.id">
+          <td class="column">{{ employee.id }}</td>
+          <td class="column">{{ employee.firstName }}</td>
+          <td class="column">{{ employee.lastName }}</td>
+          <td class="column">{{ employee.mail }}</td>
+          <td class="column">{{ employee.sex }}</td>
+          <td class="column">{{ employee.date }}</td>
+          <td class="column">
+            <img :src="employeesImg[employee.id]" width="50" height="50" />
+          </td>
+          <td class="column"><button class="edit">Edit</button></td>
+          <td class="column"><button class="edit">X</button></td>
+        </tr>
       </tbody>
     </table>
   </div>
 </template>
 
 <script>
-export default {};
+import db from "../firebase/init";
+import storage from "../firebase/storage";
+export default {
+  name: "dashboard",
+  data() {
+    return {
+      employees: [],
+      employeesImg: [],
+    };
+  },
+  created() {
+    db.collection("employees")
+      .orderBy("createdAt")
+      .get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          const data = {
+            id: doc.id,
+            firstName: doc.data().firstName,
+            lastName: doc.data().lastName,
+            date: doc.data().date,
+            mail: doc.data().mail,
+            sex: doc.data().sex,
+          };
+          this.employeesImg.push(this.getimg(doc.data().image));
+          this.employees.push(data);
+        });
+      });
+  },
+  methods: {
+    getimg(id) {
+      try {
+        storage
+          .child(id)
+          .getDownloadURL()
+          .then((url) => {
+            this.employeesImg.push(url);
+          });
+      } catch {
+        return undefined;
+      }
+    },
+  },
+};
 </script>
 
-<style></style>
+<style>
+.edit {
+  padding: 12px 20px;
+  margin: 8px 0;
+}
+.table-head {
+  background-color: gray;
+  border-radius: 25px;
+  padding-bottom: 25px;
+  box-shadow: 0 5px 20px 0px rgba(0, 0, 0, 0.5);
+  -moz-box-shadow: 0 5px 20px 0px rgba(0, 0, 0, 0.5);
+  -webkit-box-shadow: 0 5px 20px 0px rgba(0, 0, 0, 0.5);
+  -o-box-shadow: 0 5px 20px 0px rgba(0, 0, 0, 0.5);
+  -ms-box-shadow: 0 5px 20px 0px rgba(0, 0, 0, 0.5);
+}
+
+.column {
+  min-width: 100%;
+  width: auto;
+  padding-left: 40px;
+  font-family: Lato-Regular;
+  font-size: 15px;
+  color: #808080;
+  line-height: 1.4;
+  background-color: #222222;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-header {
+  cursor: pointer;
+  font-family: Lato-Bold;
+  font-size: 15px;
+  color: #00ad5f;
+  line-height: 1.4;
+  text-transform: uppercase;
+  background-color: #393939;
+  padding-top: 18px;
+  padding-bottom: 18px;
+  padding-left: 40px;
+  width: auto;
+}
+</style>

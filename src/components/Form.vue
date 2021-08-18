@@ -36,7 +36,7 @@
 </template>
 
 <script>
-export default {};
+console.log("Hello from form");
 </script>
 
 <style></style>

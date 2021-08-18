@@ -54,6 +54,7 @@
 </template>
 
 <script>
+console.log("Hello from filters.");
 export default {
   name: "HelloWorld",
   props: {
