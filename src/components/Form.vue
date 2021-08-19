@@ -152,7 +152,7 @@ export default {
         contentType: "image/jpeg",
       };
 
-      storageRef
+      storageRef //firebase.storage().ref();
         .child("profiles/" + this.maxIndex)
         .put(file, metadata)
         .then(() => {

@@ -1,8 +1,12 @@
 <template>
   <div>
     <center>
-      <button id="prevBtn" onclick="pagePrev()">Prev</button>
-      <button id="nextBtn" onclick="pageNext()">Next</button>
+      <button id="prevBtn" @click="pagePrev()" :disabled="prevBtn != 'enabled'">
+        Prev
+      </button>
+      <button id="nextBtn" @click="pageNext()" :disabled="nextBtn != 'enabled'">
+        Next
+      </button>
 
       <select @change="setEmployeesToShow($event)">
         <option value="5" selected>5</option>
@@ -82,15 +86,29 @@ export default {
       imagesLoaded: 0,
       isAllSelected: false,
       dataLoadMessage: "Loading data...",
+      field: "createdAt",
+      firstElement: "",
+      lastElement: "",
+      collection: "employees",
+      bFirst: true,
+      prevBtn: "disabled",
+      nextBtn: "disabled",
+      nextPageSize: -1,
+      prevPageSize: -1,
     };
   },
   created() {
-    db.collection("employees")
-      .orderBy("createdAt")
+    db.collection(this.collection)
+      .orderBy(this.field)
       .limit(this.limit)
       .get()
       .then((querySnapshot) => {
         querySnapshot.forEach((doc) => {
+          if (this.bFirst) {
+            this.firstElement = doc.data();
+            this.bFirst = false;
+          }
+          this.lastElement = doc.data();
           const data = {
             id: doc.id,
             firstName: doc.data().firstName,
@@ -103,6 +121,9 @@ export default {
           this.employees.push(data);
           console.log(this.employeesImg[doc.id]);
         });
+        this.isPrevPageAvailable();
+        this.isNextPageAvailable();
+        this.bFirst = true;
       });
   },
   methods: {
@@ -157,23 +178,32 @@ export default {
       );
     },
     setEmployeesToShow(event) {
-      let dbRef = db.collection("employees").orderBy("createdAt");
+      this.nextPageSize = -1;
+      this.prevPageSize = -1;
+      let dbRef = db.collection(this.collection).orderBy(this.field);
       this.dataLoadMessage =
         loadingMsg[Math.floor(Math.random() * loadingMsg.length)];
       if (event.target.value != "all") {
         dbRef = dbRef.limit(parseInt(event.target.value));
         this.isAllSelected = false;
         this.limit = event.target.value;
+        this.pageSize = event.target.value;
+        this.nextBtn = "enabled";
       } else {
+        this.prevBtn = "disabled";
+        this.nextBtn = "disabled";
         this.isAllSelected = true;
         this.limit = 0;
       }
       dbRef.get().then((querySnapshot) => {
-        this.doneLoadingImages = false;
-        this.imagesLoaded = 0;
-        this.employees = [];
-        this.employeesImg = [];
+        this.clearTable();
         querySnapshot.forEach((doc) => {
+          if (this.bFirst) {
+            this.firstElement = doc.data();
+            this.bFirst = false;
+          }
+          this.lastElement = doc.data();
+
           const data = {
             id: doc.id,
             firstName: doc.data().firstName,
@@ -185,14 +215,146 @@ export default {
           this.getimg(doc.data().image, doc.id);
           this.employees.push(data);
         });
+        this.bFirst = true;
+        this.isPrevPageAvailable();
+        this.isNextPageAvailable();
       });
     },
+
+    clearTable() {
+      this.doneLoadingImages = false;
+      this.imagesLoaded = 0;
+      this.employees = [];
+      this.employeesImg = [];
+    },
     checkIfDoneLoading() {
+      if (this.nextPageSize != -1 || this.prevPageSize != -1) {
+        if (
+          this.nextPageSize == this.imagesLoaded ||
+          this.prevPageSize == this.imagesLoaded
+        ) {
+          this.doneLoadingImages = true;
+          return;
+        }
+      }
       if (this.imagesLoaded == this.limit) {
         this.doneLoadingImages = true;
       } else {
         this.doneLoadingImages = false;
       }
+    },
+    pagePrev() {
+      this.dataLoadMessage =
+        loadingMsg[Math.floor(Math.random() * loadingMsg.length)];
+      let dbRef = db
+        .collection(this.collection)
+        .orderBy(this.field)
+        .endBefore(this.firstElement[this.field]);
+      if (this.prevPageSize == -1) {
+        dbRef = dbRef.limitToLast(this.limit);
+      } else {
+        dbRef = dbRef.limitToLast(this.prevPageSize);
+      }
+      dbRef.get().then((querySnapshot) => {
+        this.clearTable();
+        querySnapshot.forEach((doc) => {
+          if (this.bFirst) {
+            this.firstElement = doc.data();
+            this.bFirst = false;
+          }
+          this.lastElement = doc.data();
+          const data = {
+            id: doc.id,
+            firstName: doc.data().firstName,
+            lastName: doc.data().lastName,
+            date: this.formatDate(doc.data().date),
+            mail: doc.data().mail,
+            sex: doc.data().sex,
+          };
+          this.getimg(doc.data().image, doc.id);
+          this.employees.push(data);
+        });
+        this.isNextPageAvailable();
+        this.isPrevPageAvailable();
+        this.bFirst = true;
+      });
+    },
+    pageNext() {
+      this.dataLoadMessage =
+        loadingMsg[Math.floor(Math.random() * loadingMsg.length)];
+      let dbRef = db
+        .collection(this.collection)
+        .orderBy(this.field)
+        .startAfter(this.lastElement[this.field]);
+      if (this.nextPageSize == -1) {
+        dbRef = dbRef.limit(this.limit);
+      } else {
+        dbRef = dbRef.limit(this.nextPageSize);
+      }
+      dbRef.get().then((querySnapshot) => {
+        this.clearTable();
+        querySnapshot.forEach((doc) => {
+          if (this.bFirst) {
+            this.firstElement = doc.data();
+            this.bFirst = false;
+          }
+          this.lastElement = doc.data();
+          const data = {
+            id: doc.id,
+            firstName: doc.data().firstName,
+            lastName: doc.data().lastName,
+            date: this.formatDate(doc.data().date),
+            mail: doc.data().mail,
+            sex: doc.data().sex,
+          };
+          this.getimg(doc.data().image, doc.id);
+          this.employees.push(data);
+        });
+        this.isNextPageAvailable();
+        this.isPrevPageAvailable();
+        this.bFirst = true;
+      });
+    },
+    isPrevPageAvailable() {
+      db.collection(this.collection)
+        .orderBy(this.field)
+        .endBefore(this.firstElement[this.field])
+        .limitToLast(this.limit)
+        .get()
+        .then((querySnapshot) => {
+          if (parseInt(querySnapshot.size) === 0) {
+            this.prevBtn = "disabled";
+          } else {
+            console.log(querySnapshot.size);
+            if (parseInt(querySnapshot.size) != this.limit) {
+              this.prevPageSize = parseInt(querySnapshot.size);
+              this.nextPageSize = -1;
+            } else {
+              this.prevPageSize = -1;
+            }
+            this.prevBtn = "enabled";
+          }
+        });
+    },
+    isNextPageAvailable() {
+      db.collection(this.collection)
+        .orderBy(this.field)
+        .startAfter(this.lastElement[this.field])
+        .limit(this.limit)
+        .get()
+        .then((querySnapshot) => {
+          if (parseInt(querySnapshot.size) === 0) {
+            this.nextBtn = "disabled";
+          } else {
+            if (parseInt(querySnapshot.size) != this.limit) {
+              this.nextPageSize = parseInt(querySnapshot.size);
+              this.prevPageSize = -1;
+            } else {
+              this.nextPageSize = -1;
+            }
+            this.nextBtn = "enabled";
+          }
+        });
     },
   },
 };
