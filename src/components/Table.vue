@@ -4,7 +4,7 @@
       <button id="prevBtn" onclick="pagePrev()">Prev</button>
       <button id="nextBtn" onclick="pageNext()">Next</button>
 
-      <select onchange="setEmployeesToShow(this.value)">
+      <select @change="setEmployeesToShow($event)">
         <option value="5" selected>5</option>
         <option value="10">10</option>
         <option value="25">25</option>
@@ -57,12 +57,13 @@ export default {
     return {
       employees: [],
       employeesImg: [],
+      limit: 5,
     };
   },
   created() {
     db.collection("employees")
       .orderBy("createdAt")
-      .limit(5)
+      .limit(this.limit)
       .get()
       .then((querySnapshot) => {
         querySnapshot.forEach((doc) => {
@@ -116,6 +117,30 @@ export default {
       return (
         day + " " + month.charAt(0).toUpperCase() + month.slice(1) + " " + year
       );
+    },
+    setEmployeesToShow(event) {
+      let dbRef = db.collection("employees").orderBy("createdAt");
+      if (event.target.value != "all") {
+        dbRef = dbRef.limit(parseInt(event.target.value));
+      }
+      console.log("Value changed to", this.limit);
+      console.log("Value:", event.target.value);
+      dbRef.get().then((querySnapshot) => {
+        this.employees = [];
+        this.employeesImg = [];
+        querySnapshot.forEach((doc) => {
+          const data = {
+            id: doc.id,
+            firstName: doc.data().firstName,
+            lastName: doc.data().lastName,
+            date: this.formatDate(doc.data().date),
+            mail: doc.data().mail,
+            sex: doc.data().sex,
+          };
+          this.getimg(doc.data().image, doc.id);
+          this.employees.push(data);
+        });
+      });
     },
   },
 };
