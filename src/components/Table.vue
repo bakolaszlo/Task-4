@@ -13,38 +13,44 @@
     </center>
   </div>
   <div class="table-head">
-    <table class="table" id="myTable">
-      <tbody id="table-class">
-        <tr id="-1" class="head">
-          <td class="table-header" onclick="sortBy(this.innerHTML)">Index</td>
-          <td class="table-header" onclick="sortBy(this.innerHTML)">
-            First Name
-          </td>
-          <td class="table-header" onclick="sortBy(this.innerHTML)">
-            Last Name
-          </td>
-          <td class="table-header" onclick="sortBy(this.innerHTML)">Mail</td>
-          <td class="table-header" onclick="sortBy(this.innerHTML)">Sex</td>
-          <td class="table-header" onclick="sortBy(this.innerHTML)">Date</td>
-          <td class="table-header" onclick="sortBy(this.innerHTML)">Image</td>
-          <td class="table-header" onclick="sortBy(this.innerHTML)">Edit</td>
-          <td class="table-header" onclick="sortBy(this.innerHTML)">Delete</td>
-        </tr>
-        <tr v-for="employee in employees" v-bind:key="employee.id">
-          <td class="column">{{ employee.id }}</td>
-          <td class="column">{{ employee.firstName }}</td>
-          <td class="column">{{ employee.lastName }}</td>
-          <td class="column">{{ employee.mail }}</td>
-          <td class="column">{{ employee.sex }}</td>
-          <td class="column">{{ employee.date }}</td>
-          <td class="column">
-            <img :src="employeesImg[employee.id]" width="50" height="50" />
-          </td>
-          <td class="column"><button class="edit">Edit</button></td>
-          <td class="column"><button class="edit">X</button></td>
-        </tr>
-      </tbody>
-    </table>
+    <span v-if="doneLoadingImages">
+      <table class="table" id="myTable">
+        <tbody id="table-class">
+          <tr id="-1" class="head">
+            <td class="table-header" onclick="sortBy(this.innerHTML)">Index</td>
+            <td class="table-header" onclick="sortBy(this.innerHTML)">
+              First Name
+            </td>
+            <td class="table-header" onclick="sortBy(this.innerHTML)">
+              Last Name
+            </td>
+            <td class="table-header" onclick="sortBy(this.innerHTML)">Mail</td>
+            <td class="table-header" onclick="sortBy(this.innerHTML)">Sex</td>
+            <td class="table-header" onclick="sortBy(this.innerHTML)">Date</td>
+            <td class="table-header" onclick="sortBy(this.innerHTML)">Image</td>
+            <td class="table-header" onclick="sortBy(this.innerHTML)">Edit</td>
+            <td class="table-header" onclick="sortBy(this.innerHTML)">
+              Delete
+            </td>
+          </tr>
+
+          <tr v-for="employee in employees" v-bind:key="employee.id">
+            <td class="column">{{ employee.id }}</td>
+            <td class="column">{{ employee.firstName }}</td>
+            <td class="column">{{ employee.lastName }}</td>
+            <td class="column">{{ employee.mail }}</td>
+            <td class="column">{{ employee.sex }}</td>
+            <td class="column">{{ employee.date }}</td>
+            <td class="column">
+              <img :src="employeesImg[employee.id]" width="50" height="50" />
+            </td>
+            <td class="column"><button class="edit">Edit</button></td>
+            <td class="column"><button class="edit">X</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </span>
+    <span v-else><div>Loading data.</div> </span>
   </div>
 </template>
 
@@ -58,6 +64,8 @@ export default {
       employees: [],
       employeesImg: [],
       limit: 5,
+      doneLoadingImages: false,
+      imagesLoaded: 0,
     };
   },
   created() {
@@ -90,6 +98,9 @@ export default {
           .getDownloadURL()
           .then((url) => {
             this.employeesImg[parseInt(docid)] = url;
+            this.imagesLoaded++;
+            console.log("Loaded images", this.imagesLoaded);
+            this.checkIfDoneLoading();
           })
           .catch(() => {
             storage
@@ -97,6 +108,9 @@ export default {
               .getDownloadURL()
               .then((url) => {
                 this.employeesImg[parseInt(docid)] = url;
+                this.imagesLoaded++;
+                console.log("Loaded images", this.imagesLoaded);
+                this.checkIfDoneLoading();
               });
           });
       } catch {
@@ -105,6 +119,9 @@ export default {
           .getDownloadURL()
           .then((url) => {
             this.employeesImg[parseInt(docid)] = url;
+            this.imagesLoaded++;
+            console.log("Loaded images", this.imagesLoaded);
+            this.checkIfDoneLoading();
           });
       }
     },
@@ -123,9 +140,12 @@ export default {
       if (event.target.value != "all") {
         dbRef = dbRef.limit(parseInt(event.target.value));
       }
+      this.limit = event.target.value;
       console.log("Value changed to", this.limit);
       console.log("Value:", event.target.value);
       dbRef.get().then((querySnapshot) => {
+        this.doneLoadingImages = false;
+        this.imagesLoaded = 0;
         this.employees = [];
         this.employeesImg = [];
         querySnapshot.forEach((doc) => {
@@ -138,9 +158,17 @@ export default {
             sex: doc.data().sex,
           };
           this.getimg(doc.data().image, doc.id);
+
           this.employees.push(data);
         });
       });
+    },
+    checkIfDoneLoading() {
+      if (this.imagesLoaded == this.limit) {
+        this.doneLoadingImages = true;
+      } else {
+        this.doneLoadingImages = false;
+      }
     },
   },
 };
