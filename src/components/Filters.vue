@@ -1,8 +1,8 @@
 <template>
   <div class="filters" id="filters">
-    Filters:
+    <label> Filters: </label>
     <div>
-      By sex
+      <label> By sex </label>
       <select name="filterSex" id="filterSex" onchange="filterBySex()">
         <option value="" selected>All</option>
         <option value="female">Female</option>
@@ -12,7 +12,7 @@
     </div>
 
     <div>
-      By Image
+      <label> By Image </label>
       <select name="filterImg" id="filterImg" onchange="filterByImg()">
         <option value="" selected>All</option>
         <option value="img">With</option>
@@ -23,14 +23,14 @@
 
     <div>
       <div>
-        Start Date:
+        <label> Start Date: </label>
         <input
           type="date"
           name="startDate"
           id="startDate"
           onchange="filterByDate(value,null)"
         />
-        End Date:
+        <label> End Date: </label>
         <input
           type="date"
           name="endDate"
@@ -41,7 +41,8 @@
     </div>
 
     <div>
-      Keyword
+      <label> Keyword </label>
+
       <input
         type="text"
         id="filterKw"

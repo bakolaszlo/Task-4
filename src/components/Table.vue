@@ -50,13 +50,27 @@
         </tbody>
       </table>
     </span>
-    <span v-else><div>Loading data.</div> </span>
+    <span v-else>
+      <div>
+        <label>{{ dataLoadMessage }}</label>
+      </div>
+      <div class="lds-roller">
+        <div class="null-div"></div>
+        <div class="null-div"></div>
+        <div class="null-div"></div>
+        <div class="null-div"></div>
+        <div class="null-div"></div>
+        <div class="null-div"></div>
+        <div class="null-div"></div>
+        <div class="null-div"></div></div
+    ></span>
   </div>
 </template>
 
 <script>
 import db from "../firebase/init";
 import storage from "../firebase/storage";
+import loadingMsg from "../loading/loading_messages";
 export default {
   name: "dashboard",
   data() {
@@ -66,6 +80,8 @@ export default {
       limit: 5,
       doneLoadingImages: false,
       imagesLoaded: 0,
+      isAllSelected: false,
+      dataLoadMessage: "Loading data...",
     };
   },
   created() {
@@ -91,8 +107,10 @@ export default {
   },
   methods: {
     getimg(id, docid) {
+      if (this.isAllSelected) {
+        this.limit++;
+      }
       try {
-        console.log(docid);
         storage
           .child(id)
           .getDownloadURL()
@@ -100,6 +118,7 @@ export default {
             this.employeesImg[parseInt(docid)] = url;
             this.imagesLoaded++;
             console.log("Loaded images", this.imagesLoaded);
+
             this.checkIfDoneLoading();
           })
           .catch(() => {
@@ -110,6 +129,7 @@ export default {
                 this.employeesImg[parseInt(docid)] = url;
                 this.imagesLoaded++;
                 console.log("Loaded images", this.imagesLoaded);
+
                 this.checkIfDoneLoading();
               });
           });
@@ -121,6 +141,7 @@ export default {
             this.employeesImg[parseInt(docid)] = url;
             this.imagesLoaded++;
             console.log("Loaded images", this.imagesLoaded);
+
             this.checkIfDoneLoading();
           });
       }
@@ -137,12 +158,16 @@ export default {
     },
     setEmployeesToShow(event) {
       let dbRef = db.collection("employees").orderBy("createdAt");
+      this.dataLoadMessage =
+        loadingMsg[Math.floor(Math.random() * loadingMsg.length)];
       if (event.target.value != "all") {
         dbRef = dbRef.limit(parseInt(event.target.value));
+        this.isAllSelected = false;
+        this.limit = event.target.value;
+      } else {
+        this.isAllSelected = true;
+        this.limit = 0;
       }
-      this.limit = event.target.value;
-      console.log("Value changed to", this.limit);
-      console.log("Value:", event.target.value);
       dbRef.get().then((querySnapshot) => {
         this.doneLoadingImages = false;
         this.imagesLoaded = 0;
@@ -158,7 +183,6 @@ export default {
             sex: doc.data().sex,
           };
           this.getimg(doc.data().image, doc.id);
-
           this.employees.push(data);
         });
       });
@@ -190,6 +214,104 @@ export default {
   -ms-box-shadow: 0 5px 20px 0px rgba(0, 0, 0, 0.5);
 }
 
+@keyframes ldio-h1rzyy8ble5-1 {
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-45deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+@keyframes ldio-h1rzyy8ble5-2 {
+  0% {
+    transform: rotate(180deg);
+  }
+  50% {
+    transform: rotate(225deg);
+  }
+  100% {
+    transform: rotate(180deg);
+  }
+}
+.ldio-h1rzyy8ble5 > div:nth-child(2) {
+  transform: translate(-15px, 0);
+}
+.ldio-h1rzyy8ble5 > div:nth-child(2) div {
+  position: absolute;
+  top: 40px;
+  left: 40px;
+  width: 120px;
+  height: 60px;
+  border-radius: 120px 120px 0 0;
+  background: #2c8c14;
+  animation: ldio-h1rzyy8ble5-1 1s linear infinite;
+  transform-origin: 60px 60px;
+}
+.ldio-h1rzyy8ble5 > div:nth-child(2) div:nth-child(2) {
+  animation: ldio-h1rzyy8ble5-2 1s linear infinite;
+}
+.ldio-h1rzyy8ble5 > div:nth-child(2) div:nth-child(3) {
+  transform: rotate(-90deg);
+  animation: none;
+}
+@keyframes ldio-h1rzyy8ble5-3 {
+  0% {
+    transform: translate(190px, 0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(70px, 0);
+    opacity: 1;
+  }
+}
+.ldio-h1rzyy8ble5 > div:nth-child(1) {
+  display: block;
+}
+.ldio-h1rzyy8ble5 > div:nth-child(1) div {
+  position: absolute;
+  top: 92px;
+  left: -8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #0a4308;
+  animation: ldio-h1rzyy8ble5-3 1s linear infinite;
+}
+.ldio-h1rzyy8ble5 > div:nth-child(1) div:nth-child(1) {
+  animation-delay: -0.67s;
+}
+.ldio-h1rzyy8ble5 > div:nth-child(1) div:nth-child(2) {
+  animation-delay: -0.33s;
+}
+.ldio-h1rzyy8ble5 > div:nth-child(1) div:nth-child(3) {
+  animation-delay: 0s;
+}
+.loadingio-spinner-bean-eater-e1rm019nrig {
+  width: 200px;
+  height: 200px;
+  display: inline-block;
+  overflow: hidden;
+  background: #f1f2f3;
+}
+.ldio-h1rzyy8ble5 {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform: translateZ(0) scale(1);
+  backface-visibility: hidden;
+  transform-origin: 0 0; /* see note above */
+}
+.ldio-h1rzyy8ble5 div {
+  box-sizing: content-box;
+}
+/* generated by https://loading.io/ */
+
 .column {
   min-width: 100%;
   width: auto;
@@ -218,5 +340,98 @@ table {
   padding-bottom: 18px;
   padding-left: 40px;
   width: auto;
+}
+
+.lds-roller {
+  display: inline-block;
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+.lds-roller div {
+  animation: lds-roller 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  transform-origin: 40px 40px;
+}
+.lds-roller div:after {
+  content: " ";
+  display: block;
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  margin: -4px 0 0 -4px;
+}
+.lds-roller div:nth-child(1) {
+  animation-delay: -0.036s;
+}
+.lds-roller div:nth-child(1):after {
+  top: 63px;
+  left: 63px;
+}
+.lds-roller div:nth-child(2) {
+  animation-delay: -0.072s;
+}
+.lds-roller div:nth-child(2):after {
+  top: 68px;
+  left: 56px;
+}
+.lds-roller div:nth-child(3) {
+  animation-delay: -0.108s;
+}
+.lds-roller div:nth-child(3):after {
+  top: 71px;
+  left: 48px;
+}
+.lds-roller div:nth-child(4) {
+  animation-delay: -0.144s;
+}
+.lds-roller div:nth-child(4):after {
+  top: 72px;
+  left: 40px;
+}
+.lds-roller div:nth-child(5) {
+  animation-delay: -0.18s;
+}
+.lds-roller div:nth-child(5):after {
+  top: 71px;
+  left: 32px;
+}
+.lds-roller div:nth-child(6) {
+  animation-delay: -0.216s;
+}
+.lds-roller div:nth-child(6):after {
+  top: 68px;
+  left: 24px;
+}
+.lds-roller div:nth-child(7) {
+  animation-delay: -0.252s;
+}
+.lds-roller div:nth-child(7):after {
+  top: 63px;
+  left: 17px;
+}
+.lds-roller div:nth-child(8) {
+  animation-delay: -0.288s;
+}
+.lds-roller div:nth-child(8):after {
+  top: 56px;
+  left: 12px;
+}
+@keyframes lds-roller {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.null-div {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
 }
 </style>
