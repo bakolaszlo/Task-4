@@ -62,6 +62,7 @@ export default {
   created() {
     db.collection("employees")
       .orderBy("createdAt")
+      .limit(5)
       .get()
       .then((querySnapshot) => {
         querySnapshot.forEach((doc) => {
@@ -69,27 +70,52 @@ export default {
             id: doc.id,
             firstName: doc.data().firstName,
             lastName: doc.data().lastName,
-            date: doc.data().date,
+            date: this.formatDate(doc.data().date),
             mail: doc.data().mail,
             sex: doc.data().sex,
           };
-          this.employeesImg.push(this.getimg(doc.data().image));
+          this.getimg(doc.data().image, doc.id);
           this.employees.push(data);
+          console.log(this.employeesImg[doc.id]);
         });
       });
   },
   methods: {
-    getimg(id) {
+    getimg(id, docid) {
       try {
+        console.log(docid);
         storage
           .child(id)
           .getDownloadURL()
           .then((url) => {
-            this.employeesImg.push(url);
+            this.employeesImg[parseInt(docid)] = url;
+          })
+          .catch(() => {
+            storage
+              .child("profiles/default.png")
+              .getDownloadURL()
+              .then((url) => {
+                this.employeesImg[parseInt(docid)] = url;
+              });
           });
       } catch {
-        return undefined;
+        storage
+          .child("profiles/default.png")
+          .getDownloadURL()
+          .then((url) => {
+            this.employeesImg[parseInt(docid)] = url;
+          });
       }
+    },
+    formatDate(date) {
+      var d = new Date(date);
+      const month = d.toLocaleString("En", { month: "long" });
+      const day = d.getDate();
+      const year = d.getFullYear();
+
+      return (
+        day + " " + month.charAt(0).toUpperCase() + month.slice(1) + " " + year
+      );
     },
   },
 };
