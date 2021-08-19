@@ -117,11 +117,11 @@ export default {
       return re.test(email);
     },
     sendForm(event) {
+      event.preventDefault();
       if (!this.checkForm(event)) {
         console.log(this.errors);
         return;
       }
-      event.preventDefault();
       const data = {
         id: this.maxIndex,
         firstName: this.firstName,
@@ -159,8 +159,9 @@ export default {
           console.log("file uploaded?!");
         });
     },
-    clearForm(e) {
-      this.firstName = this.lastName = this.mail = this.date = "";
+    async clearForm(e) {
+      this.firstName = this.lastName = this.mail = this.date = undefined;
+      await e.target.reset();
       this.sex = "wtf";
       e.target[5].files = undefined;
     },
