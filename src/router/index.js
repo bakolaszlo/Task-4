@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Home from "../views/List.vue";
+import EditEmployee from "../views/Edit.vue";
 
 const routes = [
   {
@@ -15,6 +16,11 @@ const routes = [
     // which is lazy-loaded when the route is visited.
     component: () =>
       import(/* webpackChunkName: "about" */ "../components/Form.vue"),
+  },
+  {
+    path: "/edit/:employee_id",
+    name: "Edit",
+    component: EditEmployee,
   },
 ];
 

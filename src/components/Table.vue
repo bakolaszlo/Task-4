@@ -48,8 +48,27 @@
             <td class="column">
               <img :src="employeesImg[employee.id]" width="50" height="50" />
             </td>
-            <td class="column"><button class="edit">Edit</button></td>
-            <td class="column"><button class="edit">X</button></td>
+            <td class="column">
+              <button class="edit" :id="employee.id">
+                <router-link
+                  v-bind:to="{
+                    name: 'Edit',
+                    params: { employee_id: employee.id },
+                  }"
+                >
+                  Edit
+                </router-link>
+              </button>
+            </td>
+            <td class="column">
+              <button
+                class="edit"
+                :id="employee.id"
+                @click="deleteEmployee(employee.id)"
+              >
+                X
+              </button>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -164,6 +183,31 @@ export default {
             console.log("Loaded images", this.imagesLoaded);
 
             this.checkIfDoneLoading();
+          });
+      }
+    },
+    deleteEmployee(employeeID) {
+      if (
+        confirm(
+          "Do you really want to delete employee with this id " +
+            employeeID +
+            " ?"
+        )
+      ) {
+        db.collection("employees")
+          .doc(employeeID.toString())
+          .delete()
+          .then(() => {
+            const index = this.employees
+              .map(function (e) {
+                return e.id;
+              })
+              .indexOf(employeeID);
+
+            if (index > -1) {
+              this.employees.splice(index, 1);
+              console.log(this.employees);
+            }
           });
       }
     },
