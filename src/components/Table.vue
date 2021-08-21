@@ -21,24 +21,20 @@
       <table class="table" id="myTable">
         <tbody id="table-class">
           <tr id="-1" class="head">
-            <td class="table-header" onclick="sortBy(this.innerHTML)">Index</td>
-            <td class="table-header" onclick="sortBy(this.innerHTML)">
+            <td class="table-header" @click="sortBy('id')">Index</td>
+            <td class="table-header" @click="sortBy('firstName')">
               First Name
             </td>
-            <td class="table-header" onclick="sortBy(this.innerHTML)">
-              Last Name
-            </td>
-            <td class="table-header" onclick="sortBy(this.innerHTML)">Mail</td>
-            <td class="table-header" onclick="sortBy(this.innerHTML)">Sex</td>
-            <td class="table-header" onclick="sortBy(this.innerHTML)">Date</td>
-            <td class="table-header" onclick="sortBy(this.innerHTML)">Image</td>
-            <td class="table-header" onclick="sortBy(this.innerHTML)">Edit</td>
-            <td class="table-header" onclick="sortBy(this.innerHTML)">
-              Delete
-            </td>
+            <td class="table-header" @click="sortBy('lastName')">Last Name</td>
+            <td class="table-header" @click="sortBy('mail')">Mail</td>
+            <td class="table-header" @click="sortBy('sex')">Sex</td>
+            <td class="table-header" @click="sortBy('date')">Date</td>
+            <td class="table-header" @click="sortBy('image')">Image</td>
+            <td class="table-header">Edit</td>
+            <td class="table-header">Delete</td>
           </tr>
 
-          <tr v-for="employee in employees" v-bind:key="employee.id">
+          <tr v-for="employee in sortedColumns" v-bind:key="employee.id">
             <td class="column">{{ employee.id }}</td>
             <td class="column">{{ employee.firstName }}</td>
             <td class="column">{{ employee.lastName }}</td>
@@ -114,6 +110,8 @@ export default {
       nextBtn: "disabled",
       nextPageSize: -1,
       prevPageSize: -1,
+      currentSort: "name",
+      currentSortDir: "asc",
     };
   },
   created() {
@@ -145,7 +143,27 @@ export default {
         this.bFirst = true;
       });
   },
+  computed: {
+    sortedColumns: function () {
+      let list = this.employees.slice();
+      return list.sort((a, b) => {
+        let modifier = 1;
+        if (this.currentSortDir === "desc") modifier = -1;
+        if (a[this.currentSort] < b[this.currentSort]) return -1 * modifier;
+        if (a[this.currentSort] > b[this.currentSort]) return 1 * modifier;
+        return 0;
+      });
+    },
+  },
   methods: {
+    sortBy: function (s) {
+      //if s == current sort, reverse
+      console.log(s);
+      if (s === this.currentSort) {
+        this.currentSortDir = this.currentSortDir === "asc" ? "desc" : "asc";
+      }
+      this.currentSort = s;
+    },
     getimg(id, docid) {
       if (this.isAllSelected) {
         this.limit++;
