@@ -1,4 +1,52 @@
 <template>
+  <div class="filters" id="filters">
+    <label> Filters: </label>
+    <div></div>
+
+    <label> By sex </label>
+    <select v-model="selectedSex" name="filterSex" id="filterSex">
+      <option value="" selected>All</option>
+      <option value="female">Female</option>
+      <option value="male">Male</option>
+      <option value="wtf">Other</option>
+    </select>
+    <label> By Image </label>
+    <select v-model="selectedImage" name="filterImg" id="filterImg">
+      <option value="" selected>All</option>
+      <option value="img">With</option>
+      <option value="No Image">Without</option>
+    </select>
+
+    <label> Start Date: </label>
+    <input
+      v-model="selectedStartDate"
+      type="date"
+      name="startDate"
+      id="startDate"
+    />
+    <div>
+      <button class="resetBtn" @click="selectedStartDate = ''">
+        Reset Start Date
+      </button>
+    </div>
+    <label> End Date: </label>
+    <input v-model="selectedEndDate" type="date" name="endDate" id="endDate" />
+    <div>
+      <button class="resetBtn" @click="selectedEndDate = ''">
+        Reset End Date
+      </button>
+    </div>
+
+    <label> Keyword </label>
+
+    <input
+      v-model="keyword"
+      type="text"
+      id="filterKw"
+      placeholder="Search for anything.."
+      title="Type in a name"
+    />
+  </div>
   <div>
     <center>
       <button id="prevBtn" @click="pagePrev()" :disabled="prevBtn != 'enabled'">
@@ -102,8 +150,9 @@ export default {
       isAllSelected: false,
       dataLoadMessage: "Loading data...",
       field: "createdAt",
-      firstElement: "",
-      lastElement: "",
+      defaultImgSrc: "",
+      firstElement: undefined,
+      lastElement: undefined,
       collection: "employees",
       bFirst: true,
       prevBtn: "disabled",
@@ -112,6 +161,11 @@ export default {
       prevPageSize: -1,
       currentSort: "name",
       currentSortDir: "asc",
+      selectedSex: "",
+      selectedImage: "",
+      selectedStartDate: "",
+      selectedEndDate: "",
+      keyword: "",
     };
   },
   created() {
@@ -133,19 +187,116 @@ export default {
             date: this.formatDate(doc.data().date),
             mail: doc.data().mail,
             sex: doc.data().sex,
+            isDefaultImage: true,
           };
           this.getimg(doc.data().image, doc.id);
           this.employees.push(data);
-          console.log(this.employeesImg[doc.id]);
         });
         this.isPrevPageAvailable();
         this.isNextPageAvailable();
         this.bFirst = true;
+        this.filterByImage;
       });
   },
   computed: {
-    sortedColumns: function () {
+    filterByKewWord: function () {
       let list = this.employees.slice();
+      let filteredList = [];
+      if (this.keyword != "") {
+        for (var employeeData in list) {
+          for (var dataSlice in list[employeeData]) {
+            if (
+              list[employeeData][dataSlice]
+                .toString()
+                .toLowerCase()
+                .includes(this.keyword.toLowerCase())
+            ) {
+              filteredList.push(list[employeeData]);
+              break;
+            }
+          }
+        }
+      } else {
+        return list;
+      }
+      return filteredList;
+    },
+    filterBySex: function () {
+      let list = this.filterByKewWord;
+      let filteredList = [];
+      if (this.selectedSex != "") {
+        for (var employeeData in list) {
+          if (list[employeeData].sex == this.selectedSex) {
+            filteredList.push(list[employeeData]);
+          }
+        }
+      } else {
+        return list;
+      }
+      return filteredList;
+    },
+    filterByImage: function () {
+      let list = this.filterBySex;
+      let filteredList = [];
+      if (this.selectedImage != "") {
+        for (var employeeData in list) {
+          console.log(list[employeeData].isDefaultImage);
+          switch (this.selectedImage) {
+            case "img":
+              if (!list[employeeData].isDefaultImage) {
+                filteredList.push(list[employeeData]);
+              }
+              break;
+            case "No Image":
+              if (list[employeeData].isDefaultImage) {
+                filteredList.push(list[employeeData]);
+              }
+              break;
+            default:
+              break;
+          }
+        }
+      } else {
+        return list;
+      }
+      return filteredList;
+    },
+    filterByStartDate: function () {
+      let list = this.filterByImage;
+      let filteredList = [];
+      if (this.selectedStartDate != "") {
+        for (var employeeData in list) {
+          if (
+            new Date(list[employeeData].date) >=
+            new Date(this.selectedStartDate)
+          ) {
+            filteredList.push(list[employeeData]);
+          }
+        }
+      } else {
+        return list;
+      }
+      return filteredList;
+    },
+    filterByEndDate: function () {
+      let list = this.filterByStartDate;
+      console.log(list);
+      let filteredList = [];
+      if (this.selectedEndDate != "") {
+        for (var employeeData in list) {
+          if (
+            new Date(list[employeeData].date) <= new Date(this.selectedEndDate)
+          ) {
+            filteredList.push(list[employeeData]);
+          }
+        }
+      } else {
+        return list;
+      }
+      return filteredList;
+    },
+    sortedColumns: function () {
+      let list = this.filterByEndDate;
       return list.sort((a, b) => {
         let modifier = 1;
         if (this.currentSortDir === "desc") modifier = -1;
@@ -175,6 +326,13 @@ export default {
           .then((url) => {
             this.employeesImg[parseInt(docid)] = url;
             this.imagesLoaded++;
+            this.employees[
+              this.employees
+                .map(function (e) {
+                  return e.id;
+                })
+                .indexOf(docid)
+            ].isDefaultImage = false;
             console.log("Loaded images", this.imagesLoaded);
 
             this.checkIfDoneLoading();
@@ -186,6 +344,7 @@ export default {
               .then((url) => {
                 this.employeesImg[parseInt(docid)] = url;
                 this.imagesLoaded++;
+                this.defaultImgSrc = url;
                 console.log("Loaded images", this.imagesLoaded);
 
                 this.checkIfDoneLoading();
@@ -224,7 +383,6 @@ export default {
 
             if (index > -1) {
               this.employees.splice(index, 1);
-              console.log(this.employees);
             }
           });
       }
@@ -273,6 +431,7 @@ export default {
             date: this.formatDate(doc.data().date),
             mail: doc.data().mail,
             sex: doc.data().sex,
+            isDefaultImage: true,
           };
           this.getimg(doc.data().image, doc.id);
           this.employees.push(data);
@@ -332,6 +491,7 @@ export default {
             date: this.formatDate(doc.data().date),
             mail: doc.data().mail,
             sex: doc.data().sex,
+            isDefaultImage: true,
           };
           this.getimg(doc.data().image, doc.id);
           this.employees.push(data);
@@ -368,6 +528,7 @@ export default {
             date: this.formatDate(doc.data().date),
             mail: doc.data().mail,
             sex: doc.data().sex,
+            isDefaultImage: true,
           };
           this.getimg(doc.data().image, doc.id);
           this.employees.push(data);
