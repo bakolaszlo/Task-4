@@ -280,7 +280,6 @@ export default {
     },
     filterByEndDate: function () {
       let list = this.filterByStartDate;
-      console.log(list);
       let filteredList = [];
       if (this.selectedEndDate != "") {
         for (var employeeData in list) {
@@ -584,6 +583,9 @@ export default {
 </script>
 
 <style>
+a {
+  text-decoration: none;
+}
 .edit {
   padding: 12px 20px;
   margin: 8px 0;

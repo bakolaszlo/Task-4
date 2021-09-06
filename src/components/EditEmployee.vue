@@ -50,7 +50,6 @@
       <div v-if="submited">Succesfully submited.</div>
       <input type="submit" value="Submit" />
       <button class="resetBtn" @click="resetForm()">Reset</button>
-      <button class="resetBtn" @click="test()">Test</button>
     </div>
   </form>
 </template>
@@ -154,9 +153,6 @@ export default {
     this.startDate = yyyy - 100 + "-" + mm + "-" + dd;
   },
   methods: {
-    test() {
-      this.submited = !this.submited;
-    },
     resetForm() {
       this.firstName = this.backup.firstName;
       this.lastName = this.backup.lastName;
